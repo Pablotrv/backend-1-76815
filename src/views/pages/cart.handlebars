@@ -8,80 +8,61 @@
   </div>
   <div class="cart-summary" id="cartSummary">
     <h3>Resumen</h3>
-    <div class="summary-row"><span>Subtotal</span><span id="summaryTotal">$0.00</span></div>
+    <div class="summary-row"><span>Subtotal</span><span
+        id="summaryTotal"
+      >$0.00</span></div>
     <div class="summary-row"><span>Envío</span><span>Gratis</span></div>
     <div class="summary-divider"></div>
-    <div class="summary-row total"><span>Total</span><span id="summaryTotalFinal">$0.00</span></div>
-    <button class="btn btn-primary btn-full" id="checkoutBtn">Finalizar compra →</button>
+    <div class="summary-row total"><span>Total</span><span
+        id="summaryTotalFinal"
+      >$0.00</span></div>
+    <a
+      href="/checkout"
+      class="btn btn-primary btn-full"
+      id="checkoutBtn"
+    >Finalizar compra →</a>
   </div>
 </div>
 
 <script>
-const token = localStorage.getItem('token');
-
-async function loadCart() {
-  if (!token) { document.getElementById('cartItems').innerHTML = '<p class="empty-state">Iniciá sesión para ver tu carrito.</p>'; return; }
-  const res = await fetch('/api/cart', { headers: { 'Authorization': 'Bearer ' + token } });
-  const data = await res.json();
-  renderCart(data.data.cart);
-}
-
-function renderCart(cart) {
-  const el = document.getElementById('cartItems');
-  if (!cart.items || cart.items.length === 0) {
-    el.innerHTML = '<p class="empty-state">Tu carrito está vacío. <a href="/shop">Ver productos →</a></p>';
-    document.getElementById('summaryTotal').textContent = '$0.00';
-    document.getElementById('summaryTotalFinal').textContent = '$0.00';
-    return;
-  }
-  el.innerHTML = cart.items.map(item => `
-    <div class="cart-item" data-id="${item.product._id}">
-      <div class="cart-item-info">
-        <span class="cart-item-name">${item.product.name}</span>
-        <span class="cart-item-price">$${item.price}</span>
-      </div>
-      <div class="cart-item-controls">
-        <button class="qty-btn" onclick="updateQty('${item.product._id}', ${item.quantity - 1})">−</button>
-        <span class="qty-val">${item.quantity}</span>
-        <button class="qty-btn" onclick="updateQty('${item.product._id}', ${item.quantity + 1})">+</button>
-        <button class="remove-btn" onclick="removeItem('${item.product._id}')">✕</button>
-      </div>
-      <span class="cart-item-subtotal">$${(item.price * item.quantity).toFixed(2)}</span>
-    </div>
-  `).join('');
-  document.getElementById('summaryTotal').textContent = '$' + cart.total.toFixed(2);
-  document.getElementById('summaryTotalFinal').textContent = '$' + cart.total.toFixed(2);
-  updateCartBadge(cart.items.length);
-}
-
-async function updateQty(productId, qty) {
-  if (qty < 1) { removeItem(productId); return; }
-  const res = await fetch('/api/cart/update/' + productId, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-    body: JSON.stringify({ quantity: qty })
-  });
-  const data = await res.json();
-  if (data.success) renderCart(data.data.cart);
-  else showToast(data.message, 'error');
-}
-
-async function removeItem(productId) {
-  const res = await fetch('/api/cart/remove/' + productId, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
-  const data = await res.json();
-  if (data.success) renderCart(data.data.cart);
-}
-
-document.getElementById('checkoutBtn').addEventListener('click', async () => {
-  if (!token) { showToast('Iniciá sesión primero', 'warning'); return; }
-  const address = { street: 'Av. Corrientes 1234', city: 'Buenos Aires', state: 'CABA', zipCode: '1043', country: 'Argentina' };
-  const res = await fetch('/api/orders/checkout', {
-    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-    body: JSON.stringify({ shippingAddress: address, paymentMethod: 'tarjeta' })
-  });
-  const data = await res.json();
-  if (data.success) { showToast('¡Orden creada exitosamente! 🎉', 'success'); setTimeout(loadCart, 500); }
-  else showToast(data.message, 'error');
-});
-
-loadCart();
+  const token = localStorage.getItem('token'); async function loadCart() { if
+  (!token) { document.getElementById('cartItems').innerHTML = '<p
+  class="empty-state">Iniciá sesión para ver tu carrito. <a
+  href="/auth/login">Ir a login →</a></p>';
+  document.getElementById('checkoutBtn').style.display = 'none'; return; } const
+  res = await fetch('/api/cart', { headers: { 'Authorization': 'Bearer ' + token
+  } }); const data = await res.json(); renderCart(data.data.cart); } function
+  renderCart(cart) { const el = document.getElementById('cartItems'); if
+  (!cart.items || cart.items.length === 0) { el.innerHTML = '<p
+  class="empty-state">Tu carrito está vacío. <a href="/shop">Ver productos
+  →</a></p>'; document.getElementById('summaryTotal').textContent = '$0.00';
+  document.getElementById('summaryTotalFinal').textContent = '$0.00';
+  document.getElementById('checkoutBtn').disabled = true;
+  document.getElementById('checkoutBtn').style.opacity = '0.5'; return; }
+  el.innerHTML = cart.items.map(item => ` <div class="cart-item"
+  data-id="${item.product._id}"> <div class="cart-item-info"> <span
+  class="cart-item-name">${item.product.name}</span> <span
+  class="cart-item-price">$${item.price}</span> </div> <div
+  class="cart-item-controls"> <button class="qty-btn"
+  onclick="updateQty('${item.product._id}', ${item.quantity - 1})">−</button>
+  <span class="qty-val">${item.quantity}</span> <button class="qty-btn"
+  onclick="updateQty('${item.product._id}', ${item.quantity + 1})">+</button>
+  <button class="remove-btn"
+  onclick="removeItem('${item.product._id}')">✕</button> </div> <span
+  class="cart-item-subtotal">$${(item.price * item.quantity).toFixed(2)}</span>
+  </div> `).join(''); document.getElementById('summaryTotal').textContent = '$'
+  + cart.total.toFixed(2);
+  document.getElementById('summaryTotalFinal').textContent = '$' +
+  cart.total.toFixed(2); document.getElementById('checkoutBtn').disabled =
+  false; document.getElementById('checkoutBtn').style.opacity = '1';
+  updateCartBadge(cart.items.length); } async function updateQty(productId, qty)
+  { if (qty < 1) { removeItem(productId); return; } const res = await
+  fetch('/api/cart/update/' + productId, { method: 'PUT', headers: {
+  'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+  body: JSON.stringify({ quantity: qty }) }); const data = await res.json(); if
+  (data.success) renderCart(data.data.cart); else showToast(data.message,
+  'error'); } async function removeItem(productId) { const res = await
+  fetch('/api/cart/remove/' + productId, { method: 'DELETE', headers: {
+  'Authorization': 'Bearer ' + token } }); const data = await res.json(); if
+  (data.success) renderCart(data.data.cart); } loadCart();
 </script>
