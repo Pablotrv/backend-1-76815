@@ -76,4 +76,14 @@ router.get("/realtimeproducts", async (req, res) => {
   }
 });
 
+// Login
+router.get("/login", (req, res) => {
+  res.render("pages/login", { title: "Iniciar Sesión" });
+});
+
+// Register
+router.get("/register", (req, res) => {
+  res.render("pages/register", { title: "Crear Cuenta" });
+});
+
 module.exports = router;

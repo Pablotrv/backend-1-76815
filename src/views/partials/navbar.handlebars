@@ -4,7 +4,76 @@
     <a href="/" class="nav-link">Inicio</a>
     <a href="/shop" class="nav-link">Productos</a>
     <a href="/realtimeproducts" class="nav-link nav-link-live">⚡ Tiempo Real</a>
-    <a href="/cart" class="nav-link">Carrito <span class="cart-badge" id="cartBadge">0</span></a>
+    <a href="/cart" class="nav-link">Carrito
+      <span class="cart-badge" id="cartBadge">0</span></a>
     <a href="/dashboard" class="nav-link">Dashboard</a>
+
+    <div id="authSection" class="nav-auth">
+      <a href="/login" class="nav-link">Iniciar Sesión</a>
+      <a href="/register" class="nav-link btn-register">Crear Cuenta</a>
+    </div>
+
+    <div id="userSection" class="nav-user" style="display:none;">
+      <span class="user-name" id="userName"></span>
+      <button class="nav-link btn-logout" onclick="logout()">Cerrar Sesión</button>
+    </div>
   </div>
 </nav>
+
+<script>
+  // Verificar sesión al cargar function checkAuth() { const token =
+  localStorage.getItem('token'); const user = localStorage.getItem('user'); if
+  (token && user) { const userData = JSON.parse(user);
+  document.getElementById('authSection').style.display = 'none';
+  document.getElementById('userSection').style.display = 'flex';
+  document.getElementById('userName').textContent = '👤 ' + userData.name; }
+  else { document.getElementById('authSection').style.display = 'flex';
+  document.getElementById('userSection').style.display = 'none'; } } function
+  logout() { localStorage.removeItem('token'); localStorage.removeItem('user');
+  showToast('Sesión cerrada', 'info'); setTimeout(() => { window.location.href =
+  '/login'; }, 1000); } checkAuth();
+</script>
+
+<style>
+  .nav-auth,
+  .nav-user {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn-register {
+    background: var(--accent);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  .btn-register:hover {
+    background: #7c73ff;
+  }
+
+  .user-name {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 0 12px;
+  }
+
+  .btn-logout {
+    background: var(--error);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-logout:hover {
+    background: #ff3855;
+  }
+</style>
