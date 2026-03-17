@@ -1,5 +1,6 @@
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const { emitEvent } = require('../config/websocket');
 
 // GET /api/cart
 const getCart = async (req, res) => {
@@ -50,6 +51,14 @@ const addItem = async (req, res) => {
     cart.calculateTotal();
     await cart.save();
     await cart.populate('items.product', 'name price image stock');
+
+    emitEvent('cart:updated', {
+      userId: req.user._id,
+      action: 'item_added',
+      productName: product.name,
+      total: cart.total,
+      itemCount: cart.items.length,
+    });
 
     res.json({ success: true, message: 'Producto agregado al carrito.', data: { cart } });
   } catch (error) {

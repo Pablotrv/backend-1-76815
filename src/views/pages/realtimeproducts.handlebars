@@ -1,0 +1,164 @@
+<section class="page-header rtp-header">
+  <div>
+    <h2 class="page-title">Productos <span class="live-badge">LIVE</span></h2>
+    <p class="page-sub">El catálogo se actualiza en tiempo real via WebSocket</p>
+  </div>
+  <div class="rtp-controls">
+    <div class="rtp-stat"><span id="rtpCount">{{products.length}}</span> productos</div>
+    <div class="rtp-stat"><span id="rtpEvents">0</span> eventos recibidos</div>
+    <button class="btn btn-outline btn-sm" id="toggleFeed">⏸ Pausar feed</button>
+  </div>
+</section>
+
+<!-- Feed de eventos lateral -->
+<div class="rtp-layout">
+  <div class="rtp-main">
+    <div class="products-grid" id="rtpGrid">
+      {{#each products}}
+      <div class="product-card" id="card-{{this._id}}" data-id="{{this._id}}">
+        <div class="product-category">{{this.category}}</div>
+        <h3 class="product-name">{{this.name}}</h3>
+        <p class="product-desc">{{this.description}}</p>
+        <div class="product-footer">
+          <span class="product-price" id="price-{{this._id}}">${{this.price}}</span>
+          <span class="product-stock {{#if (gt this.stock 0)}}in-stock{{else}}no-stock{{/if}}" id="stock-{{this._id}}">
+            {{#if (gt this.stock 0)}}Stock: {{this.stock}}{{else}}Sin stock{{/if}}
+          </span>
+        </div>
+      </div>
+      {{else}}
+      <p class="empty-state">No hay productos. Creá uno desde Postman y aparecerá acá al instante.</p>
+      {{/each}}
+    </div>
+  </div>
+
+  <!-- Panel de eventos WS -->
+  <aside class="rtp-feed">
+    <div class="feed-header">
+      <h4>⚡ Feed de eventos</h4>
+      <button class="btn btn-outline btn-sm" onclick="clearFeed()">Limpiar</button>
+    </div>
+    <div class="feed-log" id="feedLog">
+      <p class="log-empty">Esperando eventos de productos…</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+let paused = false;
+let totalEvents = 0;
+
+document.getElementById('toggleFeed').addEventListener('click', function () {
+  paused = !paused;
+  this.textContent = paused ? '▶ Reanudar feed' : '⏸ Pausar feed';
+  this.style.borderColor = paused ? 'var(--warning)' : '';
+  this.style.color = paused ? 'var(--warning)' : '';
+});
+
+function clearFeed() {
+  document.getElementById('feedLog').innerHTML = '<p class="log-empty">Feed limpiado.</p>';
+}
+
+function addFeedEntry(type, data) {
+  const log = document.getElementById('feedLog');
+  const empty = log.querySelector('.log-empty');
+  if (empty) empty.remove();
+
+  const colors = { 'product:created': 'var(--success)', 'product:updated': 'var(--accent)', 'product:deleted': 'var(--error)' };
+  const icons  = { 'product:created': '✚', 'product:updated': '✎', 'product:deleted': '✕' };
+  const labels = { 'product:created': 'CREADO', 'product:updated': 'ACTUALIZADO', 'product:deleted': 'ELIMINADO' };
+
+  const entry = document.createElement('div');
+  entry.className = 'feed-entry';
+  entry.style.borderLeftColor = colors[type] || 'var(--text-muted)';
+  entry.innerHTML = `
+    <div class="feed-entry-top">
+      <span class="feed-icon" style="color:${colors[type]}">${icons[type] || '⚡'}</span>
+      <span class="feed-type" style="color:${colors[type]}">${labels[type] || type}</span>
+      <span class="feed-time">${new Date().toLocaleTimeString()}</span>
+    </div>
+    <div class="feed-entry-name">${data?.name || data?._id || '—'}</div>
+    ${data?.price !== undefined ? `<div class="feed-entry-detail">Precio: <strong>$${data.price}</strong> · Stock: <strong>${data.stock}</strong></div>` : ''}
+  `;
+  log.prepend(entry);
+  if (log.children.length > 30) log.removeChild(log.lastChild);
+}
+
+// ---- DOM helpers ----
+function flashCard(id, color) {
+  const card = document.getElementById('card-' + id);
+  if (!card) return;
+  card.style.transition = 'box-shadow 0.3s, border-color 0.3s';
+  card.style.borderColor = color;
+  card.style.boxShadow = `0 0 20px ${color}55`;
+  setTimeout(() => {
+    card.style.borderColor = '';
+    card.style.boxShadow = '';
+  }, 2000);
+}
+
+function addProductCard(data) {
+  const grid = document.getElementById('rtpGrid');
+  const empty = grid.querySelector('.empty-state');
+  if (empty) empty.remove();
+
+  const card = document.createElement('div');
+  card.className = 'product-card rtp-new';
+  card.id = 'card-' + data._id;
+  card.dataset.id = data._id;
+  card.innerHTML = `
+    <div class="product-category">${data.category || 'General'}</div>
+    <h3 class="product-name">${data.name}</h3>
+    <p class="product-desc">${data.description || ''}</p>
+    <div class="product-footer">
+      <span class="product-price" id="price-${data._id}">$${data.price}</span>
+      <span class="product-stock ${data.stock > 0 ? 'in-stock' : 'no-stock'}" id="stock-${data._id}">
+        ${data.stock > 0 ? 'Stock: ' + data.stock : 'Sin stock'}
+      </span>
+    </div>
+  `;
+  grid.prepend(card);
+  setTimeout(() => card.classList.remove('rtp-new'), 800);
+}
+
+function updateProductCard(data) {
+  const priceEl = document.getElementById('price-' + data._id);
+  const stockEl = document.getElementById('stock-' + data._id);
+  if (priceEl) priceEl.textContent = '$' + data.price;
+  if (stockEl) {
+    stockEl.textContent = data.stock > 0 ? 'Stock: ' + data.stock : 'Sin stock';
+    stockEl.className = 'product-stock ' + (data.stock > 0 ? 'in-stock' : 'no-stock');
+  }
+  flashCard(data._id, 'var(--accent)');
+}
+
+function removeProductCard(data) {
+  const card = document.getElementById('card-' + data._id);
+  if (!card) return;
+  card.style.transition = 'opacity 0.5s, transform 0.5s';
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.9)';
+  setTimeout(() => card.remove(), 500);
+}
+
+function updateCount() {
+  document.getElementById('rtpCount').textContent =
+    document.querySelectorAll('#rtpGrid .product-card').length;
+}
+
+// ---- Hook WS global ----
+window.onWsMessage = (type, data) => {
+  if (paused) return;
+  if (!type.startsWith('product:')) return;
+
+  totalEvents++;
+  document.getElementById('rtpEvents').textContent = totalEvents;
+  addFeedEntry(type, data);
+
+  if (type === 'product:created') { addProductCard(data); showToast(`Nuevo producto: "${data.name}"`, 'success'); }
+  if (type === 'product:updated') { updateProductCard(data); showToast(`Actualizado: "${data.name}"`, 'info'); }
+  if (type === 'product:deleted') { removeProductCard(data); showToast(`Eliminado: "${data.name}"`, 'error'); }
+
+  updateCount();
+};
+</script>

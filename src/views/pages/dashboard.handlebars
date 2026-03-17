@@ -1,0 +1,87 @@
+<section class="page-header">
+  <h2 class="page-title">Dashboard <span class="live-badge">LIVE</span></h2>
+  <p class="page-sub">Actividad en tiempo real via WebSocket</p>
+</section>
+
+<div class="dashboard-grid">
+  <div class="dash-card">
+    <h4>📡 Eventos en tiempo real</h4>
+    <div class="event-log" id="eventLog">
+      <p class="log-empty">Esperando eventos…</p>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="clearLog()">Limpiar</button>
+  </div>
+
+  <div class="dash-card">
+    <h4>📊 Métricas live</h4>
+    <div class="metrics">
+      <div class="metric">
+        <span class="metric-val" id="mClients">0</span>
+        <span class="metric-key">Clientes conectados</span>
+      </div>
+      <div class="metric">
+        <span class="metric-val" id="mOrders">0</span>
+        <span class="metric-key">Órdenes esta sesión</span>
+      </div>
+      <div class="metric">
+        <span class="metric-val" id="mCarts">0</span>
+        <span class="metric-key">Carritos actualizados</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-card full-width">
+    <h4>🔌 Estado WebSocket</h4>
+    <div class="ws-status-box" id="wsStatusBox">
+      <span class="ws-state" id="wsState">Conectando...</span>
+      <code id="wsLastMsg">—</code>
+    </div>
+  </div>
+</div>
+
+<script>
+let sessionOrders = 0, sessionCarts = 0;
+
+function clearLog() {
+  document.getElementById('eventLog').innerHTML = '<p class="log-empty">Log limpiado.</p>';
+}
+
+function addLogEntry(type, data) {
+  const log = document.getElementById('eventLog');
+  const empty = log.querySelector('.log-empty');
+  if (empty) empty.remove();
+
+  const entry = document.createElement('div');
+  entry.className = 'log-entry log-' + (type.includes('order') ? 'order' : type.includes('cart') ? 'cart' : 'info');
+  const icons = { 'order:created': '📦', 'order:status_changed': '🔄', 'cart:updated': '🛒', 'connected': '🔌' };
+  entry.innerHTML = `<span class="log-icon">${icons[type] || '⚡'}</span>
+    <span class="log-type">${type}</span>
+    <span class="log-data">${JSON.stringify(data).slice(0, 80)}</span>
+    <span class="log-time">${new Date().toLocaleTimeString()}</span>`;
+  log.prepend(entry);
+  if (log.children.length > 20) log.removeChild(log.lastChild);
+}
+
+// Hook into global WS handler
+window.onWsMessage = (type, data) => {
+  addLogEntry(type, data);
+  document.getElementById('wsLastMsg').textContent = JSON.stringify({ type, data }, null, 2).slice(0, 120);
+  document.getElementById('wsState').textContent = '✅ Conectado';
+
+  if (type === 'order:created') {
+    sessionOrders++;
+    document.getElementById('mOrders').textContent = sessionOrders;
+  }
+  if (type === 'cart:updated') {
+    sessionCarts++;
+    document.getElementById('mCarts').textContent = sessionCarts;
+  }
+};
+
+window.onWsConnect = () => {
+  document.getElementById('wsState').textContent = '✅ Conectado';
+};
+window.onWsDisconnect = () => {
+  document.getElementById('wsState').textContent = '❌ Desconectado';
+};
+</script>

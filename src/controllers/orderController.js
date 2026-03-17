@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const { emitEvent } = require('../config/websocket');
 
 // POST /api/orders/checkout
 const checkout = async (req, res) => {
@@ -43,6 +44,14 @@ const checkout = async (req, res) => {
     cart.items = [];
     cart.total = 0;
     await cart.save();
+
+    emitEvent('order:created', {
+      orderId: order._id,
+      userId: req.user._id,
+      userName: req.user.name,
+      total: order.total,
+      itemCount: order.items.length,
+    });
 
     res.status(201).json({ success: true, message: 'Orden creada exitosamente.', data: { order } });
   } catch (error) {
@@ -95,6 +104,7 @@ const updateOrderStatus = async (req, res) => {
     const { status } = req.body;
     const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true, runValidators: true });
     if (!order) return res.status(404).json({ success: false, message: 'Orden no encontrada.' });
+    emitEvent('order:status_changed', { orderId: order._id, status: order.status });
     res.json({ success: true, message: 'Estado actualizado.', data: { order } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

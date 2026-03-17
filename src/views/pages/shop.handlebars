@@ -1,0 +1,54 @@
+<section class="page-header">
+  <h2 class="page-title">Productos</h2>
+  <p class="page-sub">{{totalProducts}} productos disponibles</p>
+</section>
+
+<section class="products-grid">
+  {{#each products}}
+  <div class="product-card" data-id="{{this._id}}">
+    <div class="product-category">{{this.category}}</div>
+    <h3 class="product-name">{{this.name}}</h3>
+    <p class="product-desc">{{this.description}}</p>
+    <div class="product-footer">
+      <span class="product-price">${{this.price}}</span>
+      <span class="product-stock {{#if (gt this.stock 0)}}in-stock{{else}}no-stock{{/if}}">
+        {{#if (gt this.stock 0)}}Stock: {{this.stock}}{{else}}Sin stock{{/if}}
+      </span>
+    </div>
+    <button class="btn btn-primary btn-sm add-to-cart" data-id="{{this._id}}" data-name="{{this.name}}">
+      + Agregar
+    </button>
+  </div>
+  {{else}}
+  <p class="empty-state">No hay productos disponibles.</p>
+  {{/each}}
+</section>
+
+<script>
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const id = btn.dataset.id;
+    const name = btn.dataset.name;
+    const token = localStorage.getItem('token');
+    if (!token) { showToast('Debés iniciar sesión primero', 'warning'); return; }
+    btn.disabled = true;
+    btn.textContent = '…';
+    try {
+      const res = await fetch('/api/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ productId: id, quantity: 1 })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`"${name}" agregado al carrito ✓`, 'success');
+        updateCartBadge(data.data.cart.items.length);
+      } else {
+        showToast(data.message, 'error');
+      }
+    } catch(e) { showToast('Error de conexión', 'error'); }
+    btn.disabled = false;
+    btn.textContent = '+ Agregar';
+  });
+});
+</script>

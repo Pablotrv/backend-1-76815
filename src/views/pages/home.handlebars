@@ -1,0 +1,48 @@
+<section class="hero">
+  <div class="hero-text">
+    <p class="hero-eyebrow">API + Vistas en tiempo real</p>
+    <h1 class="hero-title">ShopCart<br><em>Backend</em></h1>
+    <p class="hero-sub">Node.js · Express · MongoDB · Handlebars · WebSocket</p>
+    <div class="hero-actions">
+      <a href="/shop" class="btn btn-primary">Ver productos →</a>
+      <a href="/dashboard" class="btn btn-outline">Dashboard live</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-card">
+      <span class="stat-num" id="statProducts">{{stats.products}}</span>
+      <span class="stat-label">Productos</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="statOrders">{{stats.orders}}</span>
+      <span class="stat-label">Órdenes</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="statClients">0</span>
+      <span class="stat-label">Clientes online</span>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature-card">
+    <span class="feature-icon">🔐</span>
+    <h3>Auth JWT</h3>
+    <p>Registro, login y roles de usuario con tokens seguros.</p>
+  </div>
+  <div class="feature-card">
+    <span class="feature-icon">🛒</span>
+    <h3>Carrito</h3>
+    <p>Agregar, actualizar y eliminar productos con validación de stock.</p>
+  </div>
+  <div class="feature-card">
+    <span class="feature-icon">📦</span>
+    <h3>Órdenes</h3>
+    <p>Checkout completo con gestión de estados y envío.</p>
+  </div>
+  <div class="feature-card">
+    <span class="feature-icon">⚡</span>
+    <h3>WebSocket</h3>
+    <p>Eventos en tiempo real: carritos, órdenes y stock actualizado.</p>
+  </div>
+</section>
