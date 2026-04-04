@@ -1,6 +1,6 @@
 <section class="page-header">
   <h2 class="page-title">Productos</h2>
-  <p class="page-sub">{{totalProducts}} productos disponibles</p>
+  <p class="page-sub">{{pagination.totalDocs}} productos disponibles — Página {{pagination.page}} de {{pagination.totalPages}}</p>
 </section>
 
 <section class="products-grid">
@@ -23,6 +23,31 @@
   <p class="empty-state">No hay productos disponibles.</p>
   {{/each}}
 </section>
+
+<!-- Controles de Paginación -->
+<div class="pagination-container">
+  <div class="pagination">
+    {{#if pagination.hasPrevPage}}
+      <a href="/shop?page={{pagination.prevPage}}&limit={{pagination.limit}}&sort={{pagination.sort}}&query={{pagination.query}}" class="btn btn-outline btn-sm">← Anterior</a>
+    {{else}}
+      <button class="btn btn-outline btn-sm" disabled>← Anterior</button>
+    {{/if}}
+
+    <span class="pagination-info">Página {{pagination.page}} de {{pagination.totalPages}}</span>
+
+    {{#if pagination.hasNextPage}}
+      <a href="/shop?page={{pagination.nextPage}}&limit={{pagination.limit}}&sort={{pagination.sort}}&query={{pagination.query}}" class="btn btn-outline btn-sm">Siguiente →</a>
+    {{else}}
+      <button class="btn btn-outline btn-sm" disabled>Siguiente →</button>
+    {{/if}}
+  </div>
+</div>
+
+<style>
+  .pagination-container { display: flex; justify-content: center; margin-top: 3rem; margin-bottom: 2rem; }
+  .pagination { display: flex; align-items: center; gap: 1rem; background: var(--surface); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); }
+  .pagination-info { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+</style>
 
 <script>
 document.querySelectorAll('.add-to-cart').forEach(btn => {
