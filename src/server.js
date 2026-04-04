@@ -37,6 +37,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
 
+// Rate Limiting
+const rateLimit = require("express-rate-limit");
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // límite de 100 requests por windowMs
+  message: "Demasiadas solicitudes desde esta IP, por favor intenta más tarde.",
+});
+app.use(limiter);
+
 // CORS
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -69,23 +78,17 @@ app.get("/api/health", (req, res) => {
 // 404
 app.use((req, res) => {
   if (req.path.startsWith("/api")) {
-    return res
-      .status(404)
-      .json({
-        success: false,
-        message: `Ruta ${req.originalUrl} no encontrada.`,
-      });
+    return res.status(404).json({
+      success: false,
+      message: `Ruta ${req.originalUrl} no encontrada.`,
+    });
   }
   res.status(404).send("<h1>404 — Página no encontrada</h1>");
 });
 
 // Error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res
-    .status(500)
-    .json({ success: false, message: "Error interno del servidor." });
-});
+const errorHandler = require("./middleware/errorHandler");
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
