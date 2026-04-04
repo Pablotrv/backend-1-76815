@@ -1,0 +1,80 @@
+<section class="page-header">
+  <h2 class="page-title">Tu Carrito</h2>
+  <p class="page-sub">ID: {{cart._id}}</p>
+</section>
+
+<div class="cart-container">
+  {{#if cart.items.length}}
+    <div class="cart-table-wrapper">
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each cart.items}}
+            <tr>
+              <td>
+                <div class="cart-item-info">
+                  <img
+                    src="{{this.product.image}}"
+                    alt="{{this.product.name}}"
+                    class="cart-thumb"
+                  />
+                  <strong>{{this.product.name}}</strong>
+                </div>
+              </td>
+              <td>${{this.price}}</td>
+              <td>{{this.quantity}}</td>
+              <td>${{json (math this.price "*" this.quantity)}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    <div class="cart-total-section">
+      <h3>Total: <span class="text-success">${{cart.total}}</span></h3>
+      <a href="/checkout" class="btn btn-primary">Proceder al pago</a>
+    </div>
+  {{else}}
+    <div class="empty-state">
+      <p>El carrito está vacío.</p>
+      <a href="/shop" class="btn btn-outline">Volver a la tienda</a>
+    </div>
+  {{/if}}
+</div>
+
+<style>
+  .cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+  }
+  .cart-table th,
+  .cart-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  .cart-item-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .cart-thumb {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .cart-total-section {
+    text-align: right;
+    padding: 2rem;
+    background: var(--surface);
+    border-radius: 8px;
+  }
+</style>

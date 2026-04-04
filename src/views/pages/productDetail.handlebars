@@ -1,0 +1,33 @@
+<section class="product-detail">
+  <div class="detail-grid">
+    <div class="detail-image">
+      <img src="{{product.image}}" alt="{{product.name}}">
+    </div>
+    <div class="detail-content">
+      <span class="badge">{{product.category}}</span>
+      <h1>{{product.name}}</h1>
+      <p class="price">${{product.price}}</p>
+      <p class="description">{{product.description}}</p>
+      
+      <div class="availability">
+        {{#if (gt product.stock 0)}}
+          <span class="text-success">● Stock disponible: {{product.stock}} unidades</span>
+        {{else}}
+          <span class="text-error">● Sin stock disponible</span>
+        {{/if}}
+      </div>
+
+      <button class="btn btn-primary btn-large add-to-cart" data-id="{{product._id}}" {{#if (eq product.stock 0)}}disabled{{/if}}>
+        Agregar al carrito
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2rem; }
+  .detail-image img { width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+  .price { font-size: 2rem; font-weight: 700; color: var(--accent); margin: 1rem 0; }
+  .description { font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem; }
+  .badge { background: var(--surface2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem; }
+</style>
